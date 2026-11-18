@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vokabeltraining</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sand:#f3e9d6; --sand2:#e7d6b4; --sand3:#d6bf93; --card:#fbf6ec;
+  --ink:#3a2a1c; --muted:#7a6650; --accent:#a8432a; --accent-d:#863220;
+  --ok:#2f6b2c; --okbg:#e3efd9; --bad:#a3301f; --badbg:#f6dfd8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--sand);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.45}
+#app{max-width:480px;margin:0 auto;padding:16px 16px 40px}
+h1,h2,.word,.serif{font-family:Cinzel,Georgia,serif}
+h1{font-size:30px;margin:4px 0 2px;letter-spacing:.02em}
+h2{font-size:20px;margin:0 0 10px}
+.eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:700}
+.sub{color:var(--muted);margin:0 0 16px}
+.box{background:var(--card);border:1px solid var(--sand3);border-radius:14px;padding:14px;margin:0 0 14px;box-shadow:0 1px 0 rgba(58,42,28,.06)}
+.label{font-weight:600;font-size:14px;margin:0 0 8px;color:var(--ink)}
+.bar{height:12px;background:var(--sand2);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s}
+.small{font-size:13px;color:var(--muted)}
+button{font:inherit;cursor:pointer;color:var(--ink)}
+.primary{display:block;width:100%;min-height:52px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:17px;margin-top:6px}
+.primary:active{background:var(--accent-d)}
+.primary:disabled{opacity:.45;cursor:default}
+.secondary{display:block;width:100%;min-height:48px;border:2px solid var(--accent);border-radius:12px;background:transparent;color:var(--accent);font-weight:700;margin-top:10px}
+.secondary:disabled{opacity:.45;border-color:var(--muted);color:var(--muted)}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;border:2px solid var(--sand3);border-radius:12px;background:#fff;text-align:left}
+.opt[aria-pressed=true]{border-color:var(--accent);background:#fbeee8;box-shadow:inset 0 0 0 1px var(--accent)}
+.opt b{display:block}
+.opt.sub-opt{margin-left:18px;min-height:46px;padding:6px 12px}
+.opt span.s{font-size:13px;color:var(--muted)}
+.check{margin-left:auto;font-weight:700;color:var(--accent);visibility:hidden}
+.opt[aria-pressed=true] .check{visibility:visible}
+.hud{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px;font-size:14px}
+.hud b{font-family:Cinzel,serif;font-size:18px}
+.tag{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.word{font-size:32px;font-weight:700;margin:2px 0 12px;word-break:break-word}
+.sec{font-weight:700;font-size:14px;margin:14px 0 6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.sec .cnt{font-weight:500;color:var(--muted)}
+.field{margin:0 0 8px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+input[type=text]{width:100%;min-height:48px;border:2px solid var(--sand3);border-radius:10px;padding:10px 12px;font:inherit;font-size:17px;background:#fff;color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button{min-height:48px;border:2px solid var(--sand3);border-radius:10px;background:#fff;font-weight:700;font-size:16px}
+.seg button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.rows{display:grid;gap:8px}
+.row{border:1px solid var(--sand3);border-radius:12px;padding:10px;background:#fff}
+.row .num{font-weight:700;font-family:Cinzel,Georgia,serif;margin-bottom:6px}
+.row .seg button{min-height:44px;font-size:14px;padding:0 2px}
+.row .field{margin:0 0 6px}
+.nonote{color:var(--muted);font-size:14px;font-style:italic}
+.fb{list-style:none;padding:0;margin:8px 0 12px}
+.fb li{display:flex;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;font-size:15px}
+.fb li.ok{background:var(--okbg)}
+.fb li.bad{background:var(--badbg)}
+.fb .sym{font-weight:800;font-size:18px;line-height:1.2;flex:none;width:18px}
+.fb li.ok .sym{color:var(--ok)}
+.fb li.bad .sym{color:var(--bad)}
+.fb .sol{display:block;font-size:14px;margin-top:2px}
+.pts{font-family:Cinzel,serif;font-weight:700;font-size:18px;background:var(--sand2);border-radius:10px;padding:10px 12px;text-align:center}
+.lemma{color:var(--muted);font-size:14px;margin:-8px 0 6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section id="start">
+  <div class="eyebrow" id="eyebrow">Lektion · Vokabeltraining</div>
+  <h1>Vokabeln &amp; Formen</h1>
+  <p class="sub">Übe alle Lernwörter der Lektion so, wie sie in der Abfrage verlangt werden: Lernformen, alle Bedeutungen und Formbestimmung bei Substantiven und Verben.</p>
+
+  <div class="box">
+    <div class="label">Dein Lernfortschritt</div>
+    <div class="bar"><i id="progBar" style="width:0%"></i></div>
+    <div class="small" id="progTxt" style="margin-top:6px">–</div>
+  </div>
+
+  <div class="box">
+    <div class="label">Was willst du üben?</div>
+    <div class="opts" id="modes"></div>
+  </div>
+
+  <button class="primary" id="startBtn">Übung starten</button>
+</section>
+
+<section id="race" hidden>
+  <div class="hud">
+    <div id="qnum">Frage 1</div>
+    <div>Punkte: <b id="score">0</b></div>
+  </div>
+  <div class="bar" style="margin-bottom:12px"><i id="raceBar" style="width:0%"></i></div>
+  <div class="box" id="card"></div>
+</section>
+
+<section id="finish" hidden>
+  <div class="eyebrow">Auswertung</div>
+  <h1 id="finTitle">Geschafft!</h1>
+  <div class="box result" id="result"></div>
+  <button class="primary" id="againWrong">Falsche nochmal üben</button>
+  <button class="secondary" id="newRace">Neue Runde</button>
+  <button class="secondary" id="toStart">Zum Startbildschirm</button>
+</section>
+
+</div>
+
+<script>
+/* ================= DATEN (nur diesen Block pro Lektion ersetzen) ================= */
+const LEKTION='20';
+const ABS={1:'Abschnitt 1',2:'Abschnitt 2',3:'Abschnitt 3'};
+const ABS_SUB={1:'praeesse … ut, dazu rapere, contendere',2:'īnsidiae … dēserere',3:'frequēns … castra, dazu gerere, dēficere'};
+function N(w,gen,g,m,extra,note){return{kind:'n',w,genus:g,fields:[{l:'Genitiv',a:[gen]}].concat(extra||[]),m,note}}
+function A(w,f,n,m,extra,note){return{kind:'a',w,fields:[{l:'Femininum',a:[f]},{l:'Neutrum',a:[n]}].concat(extra||[]),m,note}}
+const VB_LABELS=['1. Pers. Sg. Präsens','1. Pers. Sg. Perfekt','PPP'];
+function Vb(w,s,m,note){return{kind:'v',w,fields:s.map((x,i)=>({l:VB_LABELS[i],a:[x]})),m,note}}
+function X(w,m,note){return{kind:'x',w,fields:[],m,note}}
+function sec(n,arr){arr.forEach(v=>v.abs=n);return arr}
+
+/* Genus 'm f' = beide Genera richtig (obses, dux) */
+const VOCAB=[].concat(
+ sec(1,[
+  Vb('praeesse',['praesum','praefuī'],['leiten','an der Spitze stehen'],'m. Dat.'),
+  N('obses','obsidis','m f',['die Geisel']),
+  N('prīnceps','prīncipis','m',['der erste|erste','der führende Mann','der Kaiser']),
+  A('quantus','quanta','quantum',['wie groß','wie viel']),
+  N('plēbs','plēbis','f',['das (einfache) Volk']),
+  Vb('rapere',['rapiō','rapuī','raptum'],['rauben','wegreißen','wegführen']),
+  N('auctōritās','auctōritātis','f',['das Ansehen','der Einfluss','die Macht']),
+  Vb('contendere',['contendō','contendī'],['eilen','sich anstrengen','kämpfen','behaupten']),
+  X('-ne',['ob'],'im indir. Fragesatz'),
+  X('nihil nisī',['nichts als','nur']),
+  Vb('pōscere',['pōscō','popōscī'],['fordern','verlangen']),
+  X('cum',['als','nachdem','weil','obwohl','während (dagegen)'],'Subj. m. Konj.'),
+  N('terra','terrae','f',['die Erde','das Land']),
+  X('ut',['dass','sodass|so dass','damit','um … zu'],'Subj. m. Konj.')
+ ]),
+ sec(2,[
+  N('īnsidiae','īnsidiārum','f',['die Falle','das Attentat','die Hinterlist'],null,'Pl.'),
+  Vb('cōnscrībere',['cōnscrībō','cōnscrīpsī','cōnscrīptum'],['aufschreiben','verfassen']),
+  X('mīlitēs cōnscrībere',['Soldaten anwerben']),
+  N('amīcitia','amīcitiae','f',['die Freundschaft']),
+  N('auxilia','auxiliōrum','n',['die Hilfstruppen'],null,'Pl.'),
+  Vb('iungere',['iungō','iūnxī','iūnctum'],['verbinden','vereinigen']),
+  N('dux','ducis','m f',['der Anführer','die Anführerin']),
+  X('nē (nach Verben des Fürchtens)',['dass'],'Subj. m. Konj.'),
+  X('timēre, nē',['fürchten, dass'],'m. Konj.'),
+  X('facile',['leicht (zu tun)','einfach'],'Adv.'),
+  Vb('dēserere',['dēserō','dēseruī','dēsertum'],['verlassen','im Stich lassen'])
+ ]),
+ sec(3,[
+  A('frequēns','frequēns','frequēns',['häufig','zahlreich'],[{l:'Genitiv',a:['frequentis']}]),
+  X('nē',['dass nicht','damit nicht'],'Subj. m. Konj.'),
+  N('vīcus','vīcī','m',['das Dorf','die Gasse']),
+  A('ēgregius','ēgregia','ēgregium',['ausgezeichnet','hervorragend']),
+  Vb('gerere',['gerō','gessī','gestum'],['führen','ausführen','tragen']),
+  X('utrum … an',['ob … oder'],'im indir. Fragesatz'),
+  N('servitūs','servitūtis','f',['die Sklaverei']),
+  N('lībertās','lībertātis','f',['die Freiheit']),
+  Vb('efficere',['efficiō','effēcī','effectum'],['bewirken','herstellen']),
+  N('cupiditās','cupiditātis','f',['das Verlangen (nach)','die Leidenschaft'],null,'m. Gen.'),
+  Vb('addūcere',['addūcō','addūxī','adductum'],['heranführen','veranlassen']),
+  Vb('dēficere',['dēficiō','dēfēcī','dēfectum'],['fehlen','verlassen','abnehmen','abfallen (von)'],'abfallen von: ā m. Abl.'),
+  N('castra','castrōrum','n',['das Lager'],null,'Pl.')
+ ])
+);
+VOCAB.forEach(v=>{v.id='v:'+v.w;v.type='vok'});
+
+const NOUNS={
+ obses:{lem:'obses, obsidis m f',d:'3',g:'m f',st:['geisel']},
+ princeps:{lem:'prīnceps, prīncipis m',d:'3',g:'m',st:['erst','fuehrend','mann','maenn','kaiser']},
+ plebs:{lem:'plēbs, plēbis f',d:'3',g:'f',st:['volk','voelk']},
+ auctoritas:{lem:'auctōritās, auctōritātis f',d:'3',g:'f',st:['ansehen','einfluss','macht','maecht']},
+ terra:{lem:'terra, terrae f',d:'a',g:'f',st:['erde','land','laend']},
+ insidiae:{lem:'īnsidiae, īnsidiārum f (Pl.)',d:'a',g:'f',st:['falle','attentat','hinterlist']},
+ amicitia:{lem:'amīcitia, amīcitiae f',d:'a',g:'f',st:['freundschaft']},
+ auxilia:{lem:'auxilia, auxiliōrum n (Pl.)',d:'o',g:'n',st:['hilfstrupp']},
+ dux:{lem:'dux, ducis m f',d:'3',g:'m f',st:['anfuehrer']},
+ vicus:{lem:'vīcus, vīcī m',d:'o',g:'m',st:['dorf','doerf','gasse']},
+ servitus:{lem:'servitūs, servitūtis f',d:'3',g:'f',st:['sklaverei']},
+ libertas:{lem:'lībertās, lībertātis f',d:'3',g:'f',st:['freiheit']},
+ cupiditas:{lem:'cupiditās, cupiditātis f',d:'3',g:'f',st:['verlangen','leidenschaft']},
+ castra:{lem:'castra, castrōrum n (Pl.)',d:'o',g:'n',st:['lager']}
+};
+const FORMS=[
+ ['obses','obsidēs',[['Nom Pl','die Geiseln'],['Akk Pl','die Geiseln']]],
+ ['obses','obsidibus',[['Dat Pl','den Geiseln'],['Abl Pl','mit den Geiseln']]],
+ ['obses','obsidī',[['Dat Sg','der Geisel']]],
+ ['princeps','prīncipēs',[['Nom Pl','die führenden Männer'],['Akk Pl','die führenden Männer']]],
+ ['princeps','prīncipī',[['Dat Sg','dem Kaiser']]],
+ ['princeps','prīncipum',[['Gen Pl','der führenden Männer']]],
+ ['plebs','plēbem',[['Akk Sg','das Volk']]],
+ ['plebs','plēbis',[['Gen Sg','des Volkes']]],
+ ['plebs','plēbe',[['Abl Sg','mit dem Volk']]],
+ ['auctoritas','auctōritātem',[['Akk Sg','das Ansehen']]],
+ ['auctoritas','auctōritāte',[['Abl Sg','durch den Einfluss']]],
+ ['auctoritas','auctōritātī',[['Dat Sg','der Macht']]],
+ ['terra','terrae',[['Gen Sg','der Erde'],['Dat Sg','der Erde'],['Nom Pl','die Länder']]],
+ ['terra','terrīs',[['Dat Pl','den Ländern'],['Abl Pl','in den Ländern']]],
+ ['terra','terrā',[['Abl Sg','auf der Erde']]],
+ ['insidiae','īnsidiae',[['Nom Pl','die Falle']]],
+ ['insidiae','īnsidiīs',[['Dat Pl','der Hinterlist'],['Abl Pl','durch Hinterlist']]],
+ ['insidiae','īnsidiās',[['Akk Pl','die Falle']]],
+ ['amicitia','amīcitiae',[['Gen Sg','der Freundschaft'],['Dat Sg','der Freundschaft'],['Nom Pl','die Freundschaften']]],
+ ['amicitia','amīcitiam',[['Akk Sg','die Freundschaft']]],
+ ['amicitia','amīcitiā',[['Abl Sg','durch die Freundschaft']]],
+ ['auxilia','auxilia',[['Nom Pl','die Hilfstruppen'],['Akk Pl','die Hilfstruppen']]],
+ ['auxilia','auxiliīs',[['Dat Pl','den Hilfstruppen'],['Abl Pl','mit den Hilfstruppen']]],
+ ['auxilia','auxiliōrum',[['Gen Pl','der Hilfstruppen']]],
+ ['dux','ducēs',[['Nom Pl','die Anführer'],['Akk Pl','die Anführer']]],
+ ['dux','ducī',[['Dat Sg','dem Anführer']]],
+ ['dux','ducibus',[['Dat Pl','den Anführern'],['Abl Pl','mit den Anführern']]],
+ ['vicus','vīcī',[['Gen Sg','des Dorfes'],['Nom Pl','die Dörfer']]],
+ ['vicus','vīcō',[['Dat Sg','dem Dorf'],['Abl Sg','im Dorf']]],
+ ['vicus','vīcīs',[['Dat Pl','den Dörfern'],['Abl Pl','in den Dörfern']]],
+ ['servitus','servitūtem',[['Akk Sg','die Sklaverei']]],
+ ['servitus','servitūte',[['Abl Sg','in Sklaverei']]],
+ ['servitus','servitūtis',[['Gen Sg','der Sklaverei']]],
+ ['libertas','lībertātis',[['Gen Sg','der Freiheit']]],
+ ['libertas','lībertātī',[['Dat Sg','der Freiheit']]],
+ ['libertas','lībertāte',[['Abl Sg','in Freiheit']]],
+ ['cupiditas','cupiditātēs',[['Nom Pl','die Leidenschaften'],['Akk Pl','die Leidenschaften']]],
+ ['cupiditas','cupiditāte',[['Abl Sg','aus Verlangen']]],
+ ['cupiditas','cupiditātī',[['Dat Sg','dem Verlangen']]],
+ ['castra','castra',[['Nom Pl','das Lager'],['Akk Pl','das Lager']]],
+ ['castra','castrīs',[['Dat Pl','dem Lager'],['Abl Pl','im Lager']]],
+ ['castra','castrōrum',[['Gen Pl','des Lagers']]]
+].map(([n,f,an])=>({type:'form',id:'f:'+f,noun:n,w:f,cases:an.map(a=>a[0]),trs:an.map(a=>a[1])}));
+
+/* Verbformen: [Form, Infinitiv, [[ 'Person Numerus Tempus', 'Übersetzung|Alternativen' ]]]  – 'er' gilt auch für sie/es */
+const VFORMS=[
+ ['praesumus','praeesse',[['1 Pl Praes','wir leiten|wir stehen an der Spitze']]],
+ ['praeestis','praeesse',[['2 Pl Praes','ihr leitet|ihr steht an der Spitze']]],
+ ['praefuit','praeesse',[['3 Sg Perf','er hat geleitet|er leitete|er hat an der Spitze gestanden|er stand an der Spitze']]],
+ ['praefuī','praeesse',[['1 Sg Perf','ich habe geleitet|ich leitete|ich habe an der Spitze gestanden|ich stand an der Spitze']]],
+ ['rapit','rapere',[['3 Sg Praes','er raubt|er reißt weg|er führt weg']]],
+ ['rapuit','rapere',[['3 Sg Perf','er hat geraubt|er raubte|er hat weggerissen|er riss weg|er hat weggeführt|er führte weg']]],
+ ['rapiunt','rapere',[['3 Pl Praes','sie rauben|sie reißen weg|sie führen weg']]],
+ ['rapuistis','rapere',[['2 Pl Perf','ihr habt geraubt|ihr raubtet|ihr habt weggerissen|ihr risst weg|ihr habt weggeführt|ihr führtet weg']]],
+ ['contendit','contendere',[['3 Sg Praes','er behauptet|er eilt|er strengt sich an|er kämpft'],['3 Sg Perf','er hat behauptet|er behauptete|er ist geeilt|er eilte|er hat sich angestrengt|er strengte sich an|er hat gekämpft|er kämpfte']]],
+ ['contendimus','contendere',[['1 Pl Praes','wir behaupten|wir eilen|wir strengen uns an|wir kämpfen'],['1 Pl Perf','wir haben behauptet|wir behaupteten|wir sind geeilt|wir eilten|wir haben uns angestrengt|wir strengten uns an|wir haben gekämpft|wir kämpften']]],
+ ['pōscit','pōscere',[['3 Sg Praes','er fordert|er verlangt']]],
+ ['popōscit','pōscere',[['3 Sg Perf','er hat gefordert|er forderte|er hat verlangt|er verlangte']]],
+ ['pōscis','pōscere',[['2 Sg Praes','du forderst|du verlangst']]],
+ ['popōscērunt','pōscere',[['3 Pl Perf','sie haben gefordert|sie forderten|sie haben verlangt|sie verlangten']]],
+ ['cōnscrībō','cōnscrībere',[['1 Sg Praes','ich schreibe auf|ich verfasse']]],
+ ['cōnscrīpsistī','cōnscrībere',[['2 Sg Perf','du hast aufgeschrieben|du schriebst auf|du hast verfasst|du verfasstest']]],
+ ['iungitis','iungere',[['2 Pl Praes','ihr verbindet|ihr vereinigt']]],
+ ['iūnxit','iungere',[['3 Sg Perf','er hat verbunden|er verband|er hat vereinigt|er vereinigte']]],
+ ['dēserunt','dēserere',[['3 Pl Praes','sie verlassen|sie lassen im Stich']]],
+ ['dēseruimus','dēserere',[['1 Pl Perf','wir haben verlassen|wir verließen|wir haben im Stich gelassen|wir ließen im Stich']]],
+ ['gerit','gerere',[['3 Sg Praes','er führt|er führt aus|er trägt']]],
+ ['gessit','gerere',[['3 Sg Perf','er hat geführt|er führte|er hat ausgeführt|er führte aus|er hat getragen|er trug']]],
+ ['gessistis','gerere',[['2 Pl Perf','ihr habt geführt|ihr führtet|ihr habt ausgeführt|ihr führtet aus|ihr habt getragen|ihr trugt']]],
+ ['efficit','efficere',[['3 Sg Praes','er bewirkt|er stellt her']]],
+ ['effēcit','efficere',[['3 Sg Perf','er hat bewirkt|er bewirkte|er hat hergestellt|er stellte her']]],
+ ['efficimus','efficere',[['1 Pl Praes','wir bewirken|wir stellen her']]],
+ ['addūcis','addūcere',[['2 Sg Praes','du führst heran|du veranlasst']]],
+ ['addūxērunt','addūcere',[['3 Pl Perf','sie haben herangeführt|sie führten heran|sie haben veranlasst|sie veranlassten']]],
+ ['dēficit','dēficere',[['3 Sg Praes','er fällt ab|er fehlt|er verlässt|er nimmt ab']]],
+ ['dēfēcit','dēficere',[['3 Sg Perf','er ist abgefallen|er fiel ab|er hat gefehlt|er fehlte|er hat verlassen|er verließ|er hat abgenommen|er nahm ab']]],
+ ['dēficiunt','dēficere',[['3 Pl Praes','sie fallen ab|sie fehlen|sie verlassen|sie nehmen ab']]]
+].map(([f,inf,an])=>({type:'vform',id:'vf:'+f,w:f,inf,cases:an.map(a=>a[0]),trs:an.map(a=>a[1])}));
+
+/* ================= ENDE DATEN ================= */
+const ALL_ITEMS=VOCAB.concat(FORMS,VFORMS);
+FORMS.forEach(f=>{const l=NOUNS[f.noun].lem.split(',')[0];f.abs=(VOCAB.find(v=>v.w===l)||{}).abs});
+VFORMS.forEach(f=>{f.abs=(VOCAB.find(v=>v.w===f.inf)||{}).abs});
+const TEMP={Praes:'Präsens',Perf:'Perfekt'};
+const AUX=['hat','habe','hast','haben','habt','bin','bist','ist','sind','seid'];
+const CASES=['Nom','Gen','Dat','Akk','Abl'];
+const DEKL={a:'a-Dekl.',o:'o-Dekl.','3':'3. Dekl.'};
+
+/* ================= HILFSFUNKTIONEN ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const P=x=>String(x).replace('.',',');
+const genusOk=(sel,g)=>!!sel&&String(g).split(' ').includes(sel);
+
+function normLat(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z]+/g,' ').trim()}
+function normDe(s){return String(s||'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+  .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
+function meaningDisplay(m){return m.split('|')[0]}
+function meaningCores(m){
+  const out=[];
+  m.split('|').forEach(v=>{
+    const noPar=v.replace(/\([^)]*\)/g,' ');
+    let c=normDe(noPar);
+    if(!/,/.test(noPar)){const s=c.replace(/^(der|die|das) /,'');if(s)c=s}
+    if(c)out.push(c);
+  });
+  return out;
+}
+function meaningHit(m,ansNorm){const a=' '+ansNorm+' ';return meaningCores(m).some(c=>a.includes(' '+c+' '))}
+function lernform(it){
+  if(it.type==='form')return NOUNS[it.noun].lem;
+  if(it.type==='vform'){const v=VOCAB.find(x=>x.w===it.inf);return v?lernform(v):it.inf}
+  let s=it.w;
+  if(it.fields.length)s+=', '+it.fields.map(f=>(/Genitiv|Dativ/.test(f.l)&&it.kind!=='n'?f.l.replace('Genitiv','Gen.').replace('Dativ','Dat.')+' ':'')+f.a[0]).join(', ');
+  if(it.genus)s+=' '+it.genus;
+  if(it.note)s+=' ('+it.note+')';
+  return s;
+}
+
+/* ================= SPEICHER ================= */
+const KEY='latein-l'+LEKTION+'-fortschritt';
+let progress={};
+async function loadProg(){
+  try{ if(window.storage&&window.storage.get){const r=await window.storage.get(KEY);if(r&&r.value)progress=JSON.parse(r.value)||{}} }catch(e){progress=progress||{}}
+  renderProg();
+}
+async function saveProg(){try{if(window.storage&&window.storage.set)await window.storage.set(KEY,JSON.stringify(progress))}catch(e){}}
+function renderProg(){
+  const sure=ALL_ITEMS.filter(it=>(progress[it.id]||0)>=2).length;
+  $('#progBar').style.width=(100*sure/ALL_ITEMS.length)+'%';
+  $('#progTxt').textContent=`${sure} von ${ALL_ITEMS.length} sicher (zweimal in Folge vollständig richtig)`;
+}
+
+/* ================= STARTBILDSCHIRM ================= */
+const MULTI=Object.keys(ABS).length>1;
+const MODES=[
+ {key:'all',name:'Komplett',sub:`alle ${VOCAB.length} Vokabeln + ${FORMS.length} Substantiv- und ${VFORMS.length} Verbformen`},
+ {key:'vok',name:'Nur Vokabeln',sub:`alle ${VOCAB.length} Vokabeln mit Lernformen`}
+].concat((MULTI?Object.keys(ABS):[]).map(k=>({key:'vok'+k,name:'Vokabeln '+ABS[k],sub:`${VOCAB.filter(v=>v.abs==k).length} Vokabeln · ${ABS_SUB[k]}`,abs:true}))).concat([
+ {key:'form',name:'Nur Formen bestimmen',sub:`alle ${FORMS.length} Substantiv- und ${VFORMS.length} Verbformen`}
+]).concat((MULTI?Object.keys(ABS):[]).map(k=>{const s=FORMS.filter(f=>f.abs==k).length,v=VFORMS.filter(f=>f.abs==k).length;
+  return{key:'form'+k,name:'Formen '+ABS[k],sub:[s?s+' Substantivformen':'',v?v+' Verbformen':''].filter(Boolean).join(' + '),abs:true}}).filter(m=>m.sub));
+let mode='all';
+function renderStart(){
+  $('#modes').innerHTML=MODES.map(m=>`<button class="opt${m.abs?' sub-opt':''}" data-m="${m.key}" aria-pressed="${m.key===mode}"><div><b>${m.name}</b><span class="s">${m.sub}</span></div><span class="check">✓</span></button>`).join('');
+}
+$('#modes').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b){mode=b.dataset.m;renderStart()}});
+$('#startBtn').onclick=()=>startRace(buildList(mode));
+
+function buildList(m){
+  let list=[];
+  if(m==='all'||m==='vok')list=list.concat(VOCAB);
+  const ab=m.match(/^vok(\d)$/);if(ab)list=list.concat(VOCAB.filter(v=>v.abs==ab[1]));
+  if(m==='all'||m==='form')list=list.concat(FORMS,VFORMS);
+  const fb=m.match(/^form(\d)$/);if(fb)list=list.concat(FORMS.concat(VFORMS).filter(f=>f.abs==fb[1]));
+  return shuffle(list);
+}
+function maxPts(it){
+  if(it.type==='vform')return 1+2.5*it.cases.length;
+  if(it.type==='form')return 1+2*it.cases.length;
+  return (it.genus?1:0)+it.fields.length+it.m.length;
+}
+
+/* ================= ÜBUNG ================= */
+let R=null;
+function startRace(list){
+  const total=list.reduce((s,it)=>s+maxPts(it),0);
+  R={list,i:0,total,wrong:[],full:0,myPts:0};
+  $('#start').hidden=true;$('#finish').hidden=true;$('#race').hidden=false;
+  updateHud();showQuestion();window.scrollTo(0,0);
+}
+function updateHud(){
+  $('#qnum').textContent=`Frage ${Math.min(R.i+1,R.list.length)} von ${R.list.length}`;
+  $('#score').textContent=`${P(R.myPts)} / ${P(R.total)}`;
+  $('#raceBar').style.width=(100*R.i/R.list.length)+'%';
+}
+
+/* ---------- Frage anzeigen ---------- */
+let sel={};
+function seg(key,opts){return`<div class="seg" data-seg="${key}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="false">${l}</button>`).join('')}</div>`}
+function inp(id,label,ph){return`<div class="field"><label for="${id}">${label}</label><input type="text" id="${id}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${ph||''}"></div>`}
+
+function showQuestion(){
+  const it=R.list[R.i];sel={};
+  let h='';
+  if(it.type==='vok'){
+    h+=`<span class="tag">Vokabel${MULTI?' · '+ABS[it.abs]:''}</span><div class="word">${esc(it.w)}</div>`;
+    h+=`<div class="sec">Lernform(en)${it.fields.length||it.genus?'':' <span class="cnt">keine</span>'}</div>`;
+    if(!it.fields.length&&!it.genus)h+=`<div class="nonote">Hier musst du keine Lernform angeben.</div>`;
+    it.fields.forEach((f,k)=>{
+      h+=inp('f'+k,f.l,'vollständige Form');
+      if(k===0&&it.genus)h+=`<div class="field"><label>Genus</label>${seg('genus',[['m','m'],['f','f'],['n','n']])}</div>`;
+    });
+    const n=it.m.length;
+    h+=`<div class="sec">Bedeutung${n>1?'en':''} <span class="cnt">${n} ${n>1?'Bedeutungen':'Bedeutung'} gesucht</span></div>`;
+    h+=`<input type="text" id="mean" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${n>1?'mehrere mit Komma trennen':'Bedeutung'}">`;
+  }else if(it.type==='vform'){
+    const n=it.cases.length;
+    h+=`<span class="tag">Verbform bestimmen${MULTI?' · '+ABS[it.abs]:''}</span><div class="word">${esc(it.w)}</div>`;
+    h+=`<div class="sec">Infinitiv</div>`+inp('inf','Infinitiv Präsens','z. B. vocāre');
+    h+=`<div class="sec">Bestimmung${n>1?'en':''} <span class="cnt">${n>1?n+' Möglichkeiten – je Zeile eine Bestimmung mit Übersetzung':'eindeutig'}</span></div><div class="rows">`;
+    for(let k=0;k<n;k++){
+      h+=`<div class="row"><div class="num">${k+1}.</div><div class="field"><label>Person</label>${seg('pe'+k,[['1','1.'],['2','2.'],['3','3.']])}</div><div class="field"><label>Numerus</label>${seg('nu'+k,[['Sg','Singular'],['Pl','Plural']])}</div><div class="field"><label>Tempus</label>${seg('te'+k,[['Praes','Präsens'],['Perf','Perfekt']])}</div>${inp('tr'+k,'Übersetzung mit Personalpronomen','z. B. er hat gesagt')}</div>`;
+    }
+    h+=`</div>`;
+  }else{
+    const n=it.cases.length;
+    h+=`<span class="tag">Form bestimmen${MULTI?' · '+ABS[it.abs]:''}</span><div class="word">${esc(it.w)}</div>`;
+    h+=`<div class="sec">Deklination</div>${seg('dekl',Object.entries(DEKL))}`;
+    h+=`<div class="sec">Genus</div>${seg('genus',[['m','m'],['f','f'],['n','n']])}`;
+    h+=`<div class="sec">Bestimmung${n>1?'en':''} <span class="cnt">${n>1?n+' Möglichkeiten – je Zeile eine Bestimmung mit Übersetzung':'eindeutig'}</span></div><div class="rows">`;
+    for(let k=0;k<n;k++){
+      h+=`<div class="row"><div class="num">${k+1}.</div><div class="field"><label>Kasus</label>${seg('ka'+k,CASES.map(c=>[c,c+'.']))}</div><div class="field"><label>Numerus</label>${seg('nu'+k,[['Sg','Singular'],['Pl','Plural']])}</div>${inp('tr'+k,'Übersetzung dieser Bestimmung','z. B. mit Artikel')}</div>`;
+    }
+    h+=`</div>`;
+  }
+  h+=`<button class="primary" id="checkBtn" style="margin-top:16px">Prüfen</button>`;
+  const card=$('#card');card.innerHTML=h;
+  card.querySelectorAll('[data-seg]').forEach(g=>g.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;sel[g.dataset.seg]=b.dataset.v;
+    g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
+  const inputs=[...card.querySelectorAll('input')];
+  inputs.forEach((el,k)=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(k<inputs.length-1)inputs[k+1].focus();else check()}}));
+  $('#checkBtn').onclick=check;
+}
+
+/* ---------- Bewertung ---------- */
+function gradeVocab(it){
+  const lines=[];let pts=0,max=0;
+  it.fields.forEach((f,k)=>{
+    const v=$('#f'+k).value;max++;
+    const ok=v.trim()!==''&&f.a.some(a=>normLat(a)===normLat(v));if(ok)pts++;
+    lines.push({ok,t:`${f.l}: ${ok?esc(f.a[0]):''}`,sol:ok?'':`deine Antwort: „${esc(v.trim()||'–')}“ · richtig: <b>${esc(f.a[0])}</b>`});
+    if(k===0&&it.genus){
+      max++;const g=sel.genus,okg=genusOk(g,it.genus);if(okg)pts++;
+      lines.push({ok:okg,t:`Genus: ${okg?it.genus:''}`,sol:okg?'':`deine Antwort: ${g||'–'} · richtig: <b>${it.genus}</b>`});
+    }
+  });
+  const ans=normDe($('#mean').value);const hits=it.m.map(m=>meaningHit(m,ans));const c=hits.filter(Boolean).length,n=it.m.length;
+  max+=n;pts+=c;
+  const missing=it.m.filter((m,k)=>!hits[k]).map(meaningDisplay);
+  lines.push({ok:c===n,t:n>1?`Bedeutungen: ${c} von ${n} richtig`:`Bedeutung: ${c===n?esc(meaningDisplay(it.m[0])):'falsch'}`,
+    sol:(c===n&&n===1)?'':`${n>1?'alle: ':'richtig: '}<b>${esc(it.m.map(meaningDisplay).join(', '))}</b>${missing.length&&n>1?` · gefehlt: ${esc(missing.join(', '))}`:''}`});
+  return{lines,pts,max};
+}
+function gradeForm(it){
+  const N=NOUNS[it.noun],lines=[];let pts=0,max=0;
+  max+=.5;const okd=sel.dekl===N.d;if(okd)pts+=.5;
+  lines.push({ok:okd,t:`Deklination: ${okd?DEKL[N.d]:''} (${okd?'0,5':'0'}/0,5)`,sol:okd?'':`deine Antwort: ${sel.dekl?DEKL[sel.dekl]:'–'} · richtig: <b>${DEKL[N.d]}</b>`});
+  max+=.5;const okg=genusOk(sel.genus,N.g);if(okg)pts+=.5;
+  lines.push({ok:okg,t:`Genus: ${okg?N.g:''} (${okg?'0,5':'0'}/0,5)`,sol:okg?'':`deine Antwort: ${sel.genus||'–'} · richtig: <b>${N.g}</b>`});
+  const n=it.cases.length;
+  const rows=[...Array(n)].map((_,k)=>({ka:sel['ka'+k],nu:sel['nu'+k],tr:$('#tr'+k).value.trim(),m:null}));
+  const open=it.cases.map(c=>{const[ka,nu]=c.split(' ');return{ka,nu,used:false}});
+  rows.forEach(r=>{const o=open.find(o=>!o.used&&o.ka===r.ka&&o.nu===r.nu);if(o){o.used=true;r.m=o}});
+  rows.forEach(r=>{if(r.m)return;const o=open.find(o=>!o.used&&o.ka===r.ka)||open.find(o=>!o.used&&o.nu===r.nu);if(o){o.used=true;r.m=o}});
+  rows.forEach((r,k)=>{
+    const okk=!!r.m&&r.m.ka===r.ka, okn=!!r.m&&r.m.nu===r.nu;
+    max+=1;if(okk)pts+=.5;if(okn)pts+=.5;
+    lines.push({ok:okk,t:`${k+1}. Kasus: ${r.ka?r.ka+'.':'–'} (${okk?'0,5':'0'}/0,5)`,sol:''});
+    lines.push({ok:okn,t:`${k+1}. Numerus: ${r.nu?r.nu+'.':'–'} (${okn?'0,5':'0'}/0,5)`,sol:''});
+    const words=normDe(r.tr).split(' ').filter(Boolean);
+    const okt=words.some(w=>N.st.some(st=>w.startsWith(st)));max+=1;if(okt)pts+=1;
+    lines.push({ok:okt,t:`${k+1}. Übersetzung: ${esc(r.tr||'–')} (${okt?'1':'0'}/1)`,sol:''});
+  });
+  const fmt=x=>x.replace(' ','. ')+'.';
+  const allOk=open.every(o=>o.used)&&rows.every(r=>r.m&&r.m.ka===r.ka&&r.m.nu===r.nu);
+  lines.push({ok:allOk,t:`Lösung (Reihenfolge egal):`,sol:it.cases.map((c,k)=>`<b>${fmt(c)}</b> – ${esc(it.trs[k])}`).join('<br>')});
+  return{lines,pts,max};
+}
+function trHit(alts,ans){
+  const aw=normDe(ans).split(' ').filter(Boolean);
+  return alts.split('|').some(alt=>{
+    const w=normDe(alt).split(' ');
+    if(!w.some(x=>AUX.includes(x))&&aw.some(x=>AUX.includes(x)))return false;
+    return w.every(x=>x==='er'?aw.some(y=>y==='er'||y==='sie'||y==='es'):aw.includes(x));
+  });
+}
+function gradeVForm(it){
+  const lines=[];let pts=0,max=0;
+  const v=$('#inf').value;const okI=v.trim()!==''&&normLat(v)===normLat(it.inf);max+=1;if(okI)pts+=1;
+  lines.push({ok:okI,t:`Infinitiv: ${okI?esc(it.inf):''} (${okI?'1':'0'}/1)`,sol:okI?'':`deine Antwort: „${esc(v.trim()||'–')}“ · richtig: <b>${esc(it.inf)}</b>`});
+  const n=it.cases.length;
+  const rows=[...Array(n)].map((_,k)=>({pe:sel['pe'+k],nu:sel['nu'+k],te:sel['te'+k],tr:$('#tr'+k).value.trim(),m:null}));
+  const open=it.cases.map((c,k)=>{const[pe,nu,te]=c.split(' ');return{pe,nu,te,tr:it.trs[k],used:false}});
+  const sc=(r,o)=>(r.pe===o.pe)+(r.nu===o.nu)+(r.te===o.te);
+  rows.forEach(r=>{const o=open.find(o=>!o.used&&sc(r,o)===3);if(o){o.used=true;r.m=o}});
+  rows.forEach(r=>{if(r.m)return;let best=null,bs=-1;open.forEach(o=>{if(!o.used){const s=sc(r,o);if(s>bs){bs=s;best=o}}});if(best){best.used=true;r.m=best}});
+  const z=x=>x?'0,5':'0';
+  rows.forEach((r,k)=>{
+    const o=r.m,okp=!!o&&r.pe===o.pe,okn=!!o&&r.nu===o.nu,okt=!!o&&r.te===o.te;
+    max+=1.5;pts+=(okp?.5:0)+(okn?.5:0)+(okt?.5:0);
+    lines.push({ok:okp,t:`${k+1}. Person: ${r.pe?r.pe+'.':'–'} (${z(okp)}/0,5)`,sol:''});
+    lines.push({ok:okn,t:`${k+1}. Numerus: ${r.nu?r.nu+'.':'–'} (${z(okn)}/0,5)`,sol:''});
+    lines.push({ok:okt,t:`${k+1}. Tempus: ${r.te?TEMP[r.te]:'–'} (${z(okt)}/0,5)`,sol:''});
+    const oktr=!!o&&r.tr!==''&&trHit(o.tr,r.tr);max+=1;if(oktr)pts+=1;
+    lines.push({ok:oktr,t:`${k+1}. Übersetzung: ${esc(r.tr||'–')} (${oktr?'1':'0'}/1)`,sol:''});
+  });
+  const allOk=rows.every(r=>r.m&&sc(r,r.m)===3);
+  lines.push({ok:allOk&&rows.every(r=>trHit(r.m.tr,r.tr)),t:'Lösung (Reihenfolge egal):',sol:open.map(o=>{const a=o.tr.split('|');return `<b>${o.pe}. Pers. ${o.nu}. ${TEMP[o.te]}</b> – ${esc(a[0])}${a.length>1&&o.te==='Perf'?` <span class="small">(auch: ${esc(a[1])})</span>`:''}`}).join('<br>')});
+  return{lines,pts,max};
+}
+function check(){
+  const it=R.list[R.i];
+  const g=it.type==='vok'?gradeVocab(it):it.type==='vform'?gradeVForm(it):gradeForm(it);
+  const full=g.pts===g.max;
+  if(full)R.full++;else R.wrong.push(it);
+  progress[it.id]=full?(progress[it.id]||0)+1:0;saveProg();
+  R.myPts+=g.pts;
+  R.i++;
+  updateHud();
+  let h=`<span class="tag">${full?'Vollständig richtig':'Auswertung'}</span><div class="word">${esc(it.w)}</div>`;
+  h+=`<div class="lemma">${esc(lernform(it))}</div>`;
+  h+=`<ul class="fb">${g.lines.map(l=>`<li class="${l.ok?'ok':'bad'}"><span class="sym" aria-hidden="true">${l.ok?'✓':'✗'}</span><span><span class="sr">${l.ok?'Richtig – ':'Falsch – '}</span>${l.t}${l.sol?`<span class="sol">${l.sol}</span>`:''}</span></li>`).join('')}</ul>`;
+  h+=`<div class="pts">+${P(g.pts)} von ${P(g.max)} möglichen Punkten</div>`;
+  h+=`<button class="primary" id="nextBtn" style="margin-top:14px">${R.i<R.list.length?'Weiter':'Zur Auswertung'}</button>`;
+  $('#card').innerHTML=h;
+  window.scrollTo({top:0,behavior:'smooth'});
+  $('#nextBtn').onclick=()=>{if(R.i<R.list.length){showQuestion();window.scrollTo({top:0,behavior:'smooth'})}else finish()};
+}
+
+/* ================= AUSWERTUNG ================= */
+function finish(){
+  $('#race').hidden=true;$('#finish').hidden=false;window.scrollTo(0,0);
+  renderProg();
+  const pc=Math.round(100*R.myPts/Math.max(1,R.total));
+  $('#finTitle').textContent=pc>=90?'Optime! Sehr gut vorbereitet':pc>=70?'Bene! Fast geschafft':'Weiter üben!';
+  const n=R.list.length;
+  $('#result').innerHTML=`<b>Dein Ergebnis:</b><br> ${P(R.myPts)} von ${P(R.total)} möglichen Punkten (${pc} %).<br>${R.full} von ${n} Aufgaben vollständig richtig.`+
+    (R.wrong.length?`<div class="small" style="margin-top:8px">Noch üben: ${R.wrong.map(it=>esc(it.w)).join(', ')}</div>`:'');
+  const b=$('#againWrong');b.disabled=!R.wrong.length;b.textContent=R.wrong.length?`Falsche nochmal üben (${R.wrong.length})`:'Alles richtig – nichts zu wiederholen!';
+}
+$('#againWrong').onclick=()=>{if(R&&R.wrong.length)startRace(shuffle(R.wrong))};
+$('#newRace').onclick=()=>startRace(buildList(mode));
+$('#toStart').onclick=()=>{$('#finish').hidden=true;$('#start').hidden=false;renderProg();renderStart();window.scrollTo(0,0)};
+
+document.title='Vokabeltraining Lektion '+LEKTION;$('#eyebrow').textContent='Lektion '+LEKTION+' · Vokabeltraining';
+renderStart();loadProg();
+</script>
+</body>
+</html>
